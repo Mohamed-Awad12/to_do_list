@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg,#b4bdf1, #10052c);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+        }
+        .task-form-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            position: fixed;
+            top: 20px;
+            z-index: 1000;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input, button {
+            margin: 5px 0;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        input {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+        button {
+            background: #6a0dad;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #9a0dad;
+        }
+        .task-list-container {
+            margin-top: 200px;
+            width: 100%;
+            max-width: 600px;
+            height: calc(100vh - 220px);
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .task-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .task-list-container::-webkit-scrollbar-thumb {
+            background: #6a0dad;
+            border-radius: 10px;
+        }
+        .task-list-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            margin: 5px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            color: white;
+        }
+        .task-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .task-actions {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 5px;
+        }
+        .task-actions button {
+            background: #d9534f;
+        }
+        .task-actions button:first-child {
+            background: #5bc0de;
+        }
+    </style>
+</head>
+<body>
+    <div class="task-form-container">
+        <form id="taskForm">
+            <input type="hidden" id="taskId">
+            <input type="text" id="title" placeholder="Task Title" required>
+            <input type="text" id="description" placeholder="Task Description" required>
+            <button type="submit" id="submitButton">Add Task</button>
+        </form>
+    </div>
+    <div class="task-list-container">
+        <ul id="taskList"></ul>
+    </div>
+    
+    <script>
+        document.getElementById('taskForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const taskId = document.getElementById('taskId').value;
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            
+            if (taskId) {
+                await fetch(`/list/${taskId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `title=${title}&post=${description}`
+                });
+                document.getElementById('submitButton').textContent = 'Add Task';
+            } else {
+                await fetch('/list', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `title=${title}&post=${description}`
+                });
+            }
+            
+            document.getElementById('taskId').value = '';
+            document.getElementById('title').value = '';
+            document.getElementById('description').value = '';
+            loadTasks();
+        });
+        
+        async function loadTasks() {
+            const response = await fetch('/list');
+            const tasks = await response.json();
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="task-title">${task.title}</div>
+                    <div>${task.post}</div>
+                    <div class="task-actions">
+                        <button onclick="editTask(${task.id}, '${task.title}', '${task.post}')">Edit</button>
+                        <button onclick="deleteTask(${task.id})">Delete</button>
+                    </div>`;
+                taskList.appendChild(li);
+            });
+        }
+        
+        async function deleteTask(id) {
+            await fetch(`/list/${id}`, { method: 'DELETE' });
+            loadTasks();
+        }
+        
+        function editTask(id, title, description) {
+            document.getElementById('taskId').value = id;
+            document.getElementById('title').value = title;
+            document.getElementById('description').value = description;
+            document.getElementById('submitButton').textContent = 'Update Task';
+        }
+        
+        loadTasks();
+    </script>
+</body>
+</html>
