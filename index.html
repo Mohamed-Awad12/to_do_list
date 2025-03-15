@@ -3,61 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Manager</title>
+    <title>Enhanced Task Manager</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg,#b4bdf1, #10052c);
+            background: linear-gradient(135deg, #b4bdf1, #10052c);
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+            color: white;
         }
+
         .container {
             background: rgba(0, 0, 0, 0.8);
             width: 100%;
             max-width: 600px;
             padding: 20px;
-            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             border-radius: 15px;
             text-align: center;
-            color: white;
+            backdrop-filter: blur(10px);
         }
+
         .task-form-container {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
             width: 100%;
             max-width: 600px;
             position: fixed;
             top: 20px;
             z-index: 1000;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
+
         form {
             display: flex;
             flex-direction: column;
+            gap: 10px;
         }
-        input, button {
-            margin: 5px 0;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-        }
+
         input {
-            background: rgba(255, 255, 255, 0.3);
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
             color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
+
+        input:focus {
+            outline: none;
+            border-color: #6a0dad;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
         button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
             background: #6a0dad;
             color: white;
             cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
         button:hover {
             background: #9a0dad;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(106, 13, 173, 0.4);
         }
+
         .task-list-container {
             margin-top: 200px;
             width: 100%;
@@ -65,47 +94,107 @@
             height: calc(100vh - 220px);
             overflow-y: auto;
             padding: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: #6a0dad rgba(255, 255, 255, 0.2);
         }
+
         .task-list-container::-webkit-scrollbar {
             width: 8px;
         }
+
         .task-list-container::-webkit-scrollbar-thumb {
             background: #6a0dad;
             border-radius: 10px;
         }
+
         .task-list-container::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
         }
+
         ul {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
+
         li {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            margin: 5px;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            color: white;
+            gap: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
+        li:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
         .task-title {
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 18px;
+            color: #fff;
+            margin: 0;
         }
+
+        .task-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
         .task-actions {
             display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-top: 5px;
+            justify-content: flex-end;
+            gap: 10px;
         }
+
         .task-actions button {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .edit-btn {
+            background: #5bc0de;
+        }
+
+        .edit-btn:hover {
+            background: #31b0d5;
+        }
+
+        .delete-btn {
             background: #d9534f;
         }
-        .task-actions button:first-child {
-            background: #5bc0de;
+
+        .delete-btn:hover {
+            background: #c9302c;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 40px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        li {
+            animation: fadeIn 0.3s ease;
         }
     </style>
 </head>
@@ -123,54 +212,112 @@
     </div>
     
     <script>
+        let isLoading = false;
+
         document.getElementById('taskForm').addEventListener('submit', async function(event) {
             event.preventDefault();
-            const taskId = document.getElementById('taskId').value;
-            const title = document.getElementById('title').value;
-            const description = document.getElementById('description').value;
             
-            if (taskId) {
-                await fetch(`https://todolist-production-50f4.up.railway.app/list/${taskId}`, {
-                    method: 'PUT',
+            const submitButton = document.getElementById('submitButton');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Processing...';
+
+            try {
+                const taskId = document.getElementById('taskId').value;
+                const title = document.getElementById('title').value;
+                const description = document.getElementById('description').value;
+                
+                const endpoint = taskId ? `/list/${taskId}` : '/list';
+                const method = taskId ? 'PUT' : 'POST';
+                
+                const response = await fetch(endpoint, {
+                    method,
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: `title=${title}&post=${description}`
+                    body: `title=${encodeURIComponent(title)}&post=${encodeURIComponent(description)}`
                 });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save task');
+                }
+
+                document.getElementById('taskId').value = '';
+                document.getElementById('title').value = '';
+                document.getElementById('description').value = '';
                 document.getElementById('submitButton').textContent = 'Add Task';
-            } else {
-                await fetch('https://todolist-production-50f4.up.railway.app/list', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: `title=${title}&post=${description}`
-                });
+                
+                await loadTasks();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to save task. Please try again.');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
             }
-            
-            document.getElementById('taskId').value = '';
-            document.getElementById('title').value = '';
-            document.getElementById('description').value = '';
-            loadTasks();
         });
         
         async function loadTasks() {
-            const response = await fetch('https://todolist-production-50f4.up.railway.app/list');
-            const tasks = await response.json();
+            if (isLoading) return;
+            
             const taskList = document.getElementById('taskList');
-            taskList.innerHTML = '';
-            tasks.forEach(task => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <div class="task-title">${task.title}</div>
-                    <div>${task.post}</div>
-                    <div class="task-actions">
-                        <button onclick="editTask(${task.id}, '${task.title}', '${task.post}')">Edit</button>
-                        <button onclick="deleteTask(${task.id})">Delete</button>
-                    </div>`;
-                taskList.appendChild(li);
-            });
+            isLoading = true;
+            taskList.innerHTML = '<div class="loading">Loading tasks...</div>';
+
+            try {
+                const response = await fetch('/list');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch tasks');
+                }
+
+                const tasks = await response.json();
+                taskList.innerHTML = '';
+
+                if (tasks.length === 0) {
+                    taskList.innerHTML = '<div class="empty-state">No tasks yet. Add your first task above!</div>';
+                    return;
+                }
+
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="task-title">${escapeHtml(task.title)}</div>
+                        <div class="task-description">${escapeHtml(task.post)}</div>
+                        <div class="task-actions">
+                            <button class="edit-btn" onclick="editTask(${task.id}, '${escapeHtml(task.title)}', '${escapeHtml(task.post)}')">
+                                Edit
+                            </button>
+                            <button class="delete-btn" onclick="deleteTask(${task.id})">
+                                Delete
+                            </button>
+                        </div>`;
+                    taskList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                taskList.innerHTML = '<div class="empty-state">Failed to load tasks. Please refresh the page.</div>';
+            } finally {
+                isLoading = false;
+            }
         }
         
         async function deleteTask(id) {
-            await fetch(`https://todolist-production-50f4.up.railway.app/list/${id}`, { method: 'DELETE' });
-            loadTasks();
+            if (!confirm('Are you sure you want to delete this task?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/list/${id}`, { 
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete task');
+                }
+
+                await loadTasks();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to delete task. Please try again.');
+            }
         }
         
         function editTask(id, title, description) {
@@ -178,9 +325,26 @@
             document.getElementById('title').value = title;
             document.getElementById('description').value = description;
             document.getElementById('submitButton').textContent = 'Update Task';
+            document.getElementById('title').focus();
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
         
+        // Initial load
         loadTasks();
+
+        // Add error boundary
+        window.addEventListener('error', function(event) {
+            console.error('Global error:', event.error);
+            alert('An unexpected error occurred. Please refresh the page.');
+        });
     </script>
 </body>
 </html>
